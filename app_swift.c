@@ -59,8 +59,8 @@ static char *app = "Swift";
 
 static char *synopsis = "Speak text through Swift text-to-speech engine.";
 
-static char *descrip =" Syntax: Swift(text[|timeout in ms|maximum digits])\n"
-                      "Example: Swift(Hello World|5000|5) = 5 second delay between 5 digits\n"
+static char *descrip =" Syntax: Swift(text[|voice|timeout in ms|maximum digits])\n"
+                      "Example: Swift(Hello World|Alison|5000|5) = 5 second delay between 5 digits\n"
                       "This application operates in two modes. One is processing text-to-speech while\n"
                       "listening for DTMF and the other just processes the text-to-speech while ignoring\n"
                       "DTMF entirely. \n"
@@ -258,7 +258,7 @@ static int engine(struct ast_channel *chan, void *data)
 {
     int res = 0, argc = 0, max_digits = 0, timeout = 0, alreadyran = 0;
     int ms, len, old_writeformat, availatend, rc;
-    char *argv[3], *parse = NULL, *text = NULL, results[20], tmp_exten[2];
+    char *argv[4], *parse = NULL, *text = NULL, *sel_voice = NULL, results[20], tmp_exten[2];
     struct ast_module_user *u;
     struct ast_frame *f;
     struct myframe {
@@ -287,11 +287,17 @@ static int engine(struct ast_channel *chan, void *data)
 
     text = argv[0];
     
-    if (!ast_strlen_zero(argv[1])) 
-      timeout    = strtol(argv[1], NULL, 0);
+    if (!ast_strlen_zero(argv[1])) {
+      sel_voice  = argv[1];
+    } else {
+      sel_voice =  cfg_voice;
+    }
   
-    if (!ast_strlen_zero(argv[2]))
-      max_digits = strtol(argv[2], NULL, 0);
+    if (!ast_strlen_zero(argv[2])) 
+      timeout    = strtol(argv[2], NULL, 0);
+  
+    if (!ast_strlen_zero(argv[3]))
+      max_digits = strtol(argv[3], NULL, 0);
 
     if (ast_strlen_zero(text)) {
         ast_log(LOG_WARNING, "%s requires text to speak!\n", app);
@@ -300,6 +306,10 @@ static int engine(struct ast_channel *chan, void *data)
 
     if (!ast_strlen_zero(text))
             ast_log(LOG_NOTICE, "Text to Speak : %s\n", text);
+
+    if (!ast_strlen_zero(sel_vocie)
+            ast_log(LOG_NOTICE, "Voice to use : %s\n", text);
+
 
     if (timeout > 0)
       ast_log(LOG_NOTICE, "Timeout : %d\n", timeout);
@@ -332,7 +342,7 @@ static int engine(struct ast_channel *chan, void *data)
         goto exception;
     }
 
-    if ((voice = swift_port_set_voice_by_name(port, cfg_voice)) == NULL) {
+    if ((voice = swift_port_set_voice_by_name(port, sel_voice)) == NULL) {
         ast_log(LOG_ERROR, "Failed to set voice.\n");
         goto exception;
     }
