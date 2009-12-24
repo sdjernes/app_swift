@@ -1,3 +1,64 @@
+This is the Modified version of app_swift based on Darren Sessions code. 
+His original README is below.
+
+This code was also modified by Eric Lindvall in his project at GitHub.
+
+I Shawn L. Djernes sdjernes@gmail.com have modifed this application to
+support selecting the synthesizer from the Asterisk dialplan. This 
+feature is needed for multilingual applications.  I hope to eventually 
+provide a way via the config file to specify the default synthesizer per 
+language.
+
+New and updated versions of this package can be found at:
+
+	http://github.com/sdjernes/app_swift
+
+In that repository is also a version for Asterisk 1.4 with
+simular modifcations.  However the project I am working on is
+moving to Asterisk 1.6.2 at this time, so I do not plan any more
+work on that code.
+
+INSTALLATION
+
+You will need to have a Cepstral http://cepstral.com voice installed
+on your system.  This will install the needed libs and header files.
+
+You need to have the Asterisk header files installed on your system. If
+you installed Asterisk as part of a package from you Linux Distribution,
+install the appropiate -dev or -devel package to get the header files.
+
+If you get the package as a Tar.gz file:
+
+	tar zxvf app_swift-*.tar.gz
+
+Change into the directory.
+	cd app_swift
+
+Make the module
+	make
+
+If all goes well and you get no errors. Install the files
+	make install
+
+Now restart Asterisk to get the module loaded.
+
+USAGE
+
+If you have only one synthesizer installed you will want to 
+modify the swift.conf file to tell it what voice you have.
+
+To call the application from within the dialplan use it like this.
+
+	exten => 123,1,Swift(Hello World)
+
+To specify the voice to use:
+
+	exten => 123,1,Swift(Hello World,Callie-8khz)
+
+
+
+--- Original Readme ---
+
 The beauty of this application is its ability to stream the
 data from the text-to-speech engine vs. having to write out
 and possibly convert audio files to the filesystem.

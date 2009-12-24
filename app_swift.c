@@ -1,11 +1,13 @@
 /*
  *  app_swift -- A Cepstral Swift TTS engine interface  
  *
+ *  Copyright (C) 2009, Shawn L. Djernes
  *  Copyright (C) 2008, Darren Sessions
  *  Copyright (C) 2006, Will Orton
  *
  *  Darren Sessions <dmsessions@gmail.com>
  *
+ *  Shawn L. Djernes <sdjernes@gmail.com>
  *
  *  This program is free software, distributed under the terms of
  *  the GNU General Public License Version 2. Read the LICENSE 
@@ -27,7 +29,7 @@
  ***/
 
 #include "asterisk.h"
-ASTERISK_FILE_VERSION(__FILE__, "$Revision: 1.6.2 $")
+ASTERISK_FILE_VERSION(__FILE__, "$Revision: 1.6.2.sd1 $")
 
 #include <string.h>
 #include <stdio.h>
@@ -59,8 +61,8 @@ static char *app = "Swift";
 
 static char *synopsis = "Speak text through Swift text-to-speech engine.";
 
-static char *descrip =" Syntax: Swift(text[|timeout in ms|maximum digits])\n"
-                      "Example: Swift(Hello World|5000|5) = 5 second delay between 5 digits\n"
+static char *descrip =" Syntax: Swift(text[voice,timeout in ms,maximum digits])\n"
+                      "Example: Swift(Hello World,Callie-8khz,5000,5) = 5 second delay between 5 digits\n"
                       "This application operates in two modes. One is processing text-to-speech while\n"
                       "listening for DTMF and the other just processes the text-to-speech while ignoring\n"
                       "DTMF entirely. \n"
@@ -260,7 +262,7 @@ static int engine(struct ast_channel *chan, void *data)
 {
     int res = 0, argc = 0, max_digits = 0, timeout = 0, alreadyran = 0;
     int ms, len, old_writeformat, availatend, rc;
-    char *argv[3], *parse = NULL, *text = NULL, results[20], tmp_exten[2];
+    char *argv[4], *parse = NULL, *text = NULL, *sel_voice = NULL, results[20], tmp_exten[2];
     struct ast_module_user *u;
     struct ast_frame *f;
     struct myframe {
@@ -285,15 +287,18 @@ static int engine(struct ast_channel *chan, void *data)
 
     u = ast_module_user_add(chan);
    
-    argc = ast_app_separate_args(parse, '|', argv, sizeof(argv) / sizeof(argv[0]));
+    argc = ast_app_separate_args(parse, ',', argv, sizeof(argv) / sizeof(argv[0]));
 
     text = argv[0];
-    
+
     if (!ast_strlen_zero(argv[1])) 
-      timeout    = strtol(argv[1], NULL, 0);
+	sel_voice = argv[1];
+
+    if (!ast_strlen_zero(argv[2])) 
+      timeout    = strtol(argv[2], NULL, 0);
   
-    if (!ast_strlen_zero(argv[2]))
-      max_digits = strtol(argv[2], NULL, 0);
+    if (!ast_strlen_zero(argv[3]))
+      max_digits = strtol(argv[3], NULL, 0);
 
     if (ast_strlen_zero(text)) {
         ast_log(LOG_WARNING, "%s requires text to speak!\n", app);
@@ -302,6 +307,9 @@ static int engine(struct ast_channel *chan, void *data)
 
     if (!ast_strlen_zero(text))
             ast_log(LOG_NOTICE, "Text to Speak : %s\n", text);
+
+    if (!ast_strlen_zero(sel_voice))
+	ast_log(LOG_NOTICE, "Using Voice : %s\n", sel_voice);
 
     if (timeout > 0)
       ast_log(LOG_NOTICE, "Timeout : %d\n", timeout);
@@ -334,7 +342,10 @@ static int engine(struct ast_channel *chan, void *data)
         goto exception;
     }
 
-    if ((voice = swift_port_set_voice_by_name(port, cfg_voice)) == NULL) {
+    if (ast_strlen_zero(sel_voice))
+	sel_voice = cfg_voice;
+
+    if ((voice = swift_port_set_voice_by_name(port, sel_voice)) == NULL) {
         ast_log(LOG_ERROR, "Failed to set voice.\n");
         goto exception;
     }

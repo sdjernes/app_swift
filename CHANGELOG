@@ -1,3 +1,10 @@
+2009-12-24 - Shawn L. Djernes <sdjernes@gmail.com>
+---------------------------------------------------
+  Added support for selecting the synthesizer from the dialplan
+
+  Changed the argument seperator to "," from "|" to be consistant with 1.6
+
+
 2008-07-09 - Darren Sessions <dmsessions@gmail.com>
 ---------------------------------------------------  
   Added support for handling multiple dtmf input 
